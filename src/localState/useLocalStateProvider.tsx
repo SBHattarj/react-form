@@ -1,15 +1,18 @@
-import  {useMemo, useState, useEffect, createContext, useCallback, ReactNode, useId} from 'react'
+import  {useMemo, ReactNode, useId} from 'react'
 import {atom, RecoilState} from 'recoil'
+import {LocalContext} from './localContext'
 
-export default function useLocalStateProvider<T>(innitialValue: T) {
+function createLocalStateProvider<T>(State: RecoilState<T>) {
+    return ({children}: {children: ReactNode}) => <LocalContext.Provider value={State} >{children}</LocalContext.Provider>
+}
+
+export default function useLocalStateProvider<T>(innitialValue: T): [RecoilState<T>, ({ children }: { children: ReactNode; }) => JSX.Element] {
     const key = useId()
     const LocalState = useMemo(() => atom({
         key,
         default: innitialValue
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [])
-    const StateContext = useMemo(() => createContext(LocalState), [])
-    const LocalStateProvider = useCallback(({children}: {children:  ReactNode}) =>
-        <StateContext.Provider value={LocalState}>{children}</StateContext.Provider>
-    , [LocalState])
+    const LocalStateProvider = createLocalStateProvider(LocalState)
     return [LocalState, LocalStateProvider]
 }
